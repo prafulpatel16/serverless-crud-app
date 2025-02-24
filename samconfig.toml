@@ -1,0 +1,11 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "crud-serverless-app"
+resolve_s3 = true
+s3_prefix = "crud-serverless-app"
+region = "us-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_NAMED_IAM"
+disable_rollback = true
+parameter_overrides = "TableName=\"CRUDTable\" S3FrontendBucketName=\"crud-frontend-bucket-2025\" StageName=\"prod\""
+image_repositories = []

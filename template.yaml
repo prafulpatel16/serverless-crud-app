@@ -1,0 +1,241 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Serverless CRUD application with separate Lambda functions for each operation,
+  an S3 bucket for hosting a static website, and a DynamoDB backend with API Gateway.
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: python3.8 
+    Tracing: Active
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        DYNAMODB_TABLE: !Ref TableName
+        REGION_NAME: !Ref AWS::Region
+  Api:
+    TracingEnabled: True
+
+Parameters:
+  TableName:
+    Type: String
+    Default: "CRUDTable"
+    Description: "Name of the DynamoDB table."
+  S3FrontendBucketName:
+    Type: String
+    Description: "Name of the S3 bucket for hosting the static website (must be globally unique)."
+    Default: "crud-frontend-bucket-2025"
+  StageName:
+    Type: String
+    Default: "prod"
+    Description: "API Gateway stage name (e.g., dev, staging, prod)."
+
+Resources:
+  ### DynamoDB Table
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  ### IAM Role for S3 Access
+  CrudApiS3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: crudApiS3Role1
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - apigateway.amazonaws.com
+ 
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: CrudApiS3AccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:DeleteObject
+                Resource:
+                  - !GetAtt FrontendBucket.Arn
+                  - !Sub "${FrontendBucket.Arn}/*"
+
+  ### S3 Bucket for Frontend Hosting
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3FrontendBucketName
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+    DeletionPolicy: Retain  # Prevent accidental bucket deletion
+
+  ### Attach IAM Role to S3 Bucket
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCrudApiS3RoleAccess
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt CrudApiS3Role.Arn
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:ListBucket
+              - s3:DeleteObject
+            Resource:
+              - !GetAtt FrontendBucket.Arn
+              - !Sub "${FrontendBucket.Arn}/*"
+
+  ### API Gateway
+  CrudApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: "MyCrudApi"
+      StageName: !Ref StageName
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  ### Lambda Functions
+  CreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "CreateFunction"
+      CodeUri: backend/src/create/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TableName
+      Events:
+        CreateApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CrudApi
+            Path: /create
+            Method: post
+
+  ReadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "ReadFunction"
+      CodeUri: backend/src/read/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TableName
+      Events:
+        ReadApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CrudApi
+            Path: /read
+            Method: get
+
+  UpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "UpdateFunction"
+      CodeUri: backend/src/update/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TableName
+      Events:
+        UpdateApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CrudApi
+            Path: /update
+            Method: put
+
+  DeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "DeleteFunction"
+      CodeUri: backend/src/delete/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TableName
+      Events:
+        DeleteApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CrudApi
+            Path: /delete
+            Method: delete
+
+  ListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "ListFunction"
+      CodeUri: backend/src/list/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TableName
+      Events:
+        ListApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CrudApi
+            Path: /list
+            Method: get
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${CrudApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  DynamoDBTableName:
+    Description: "Name of the DynamoDB table"
+    Value: !Ref TableName
+  FrontendBucketName:
+    Description: "S3 Bucket name hosting the frontend"
+    Value: !Ref FrontendBucket
+  FrontendBucketWebsiteURL:
+    Description: "S3 Website endpoint"
+    Value: !GetAtt FrontendBucket.WebsiteURL

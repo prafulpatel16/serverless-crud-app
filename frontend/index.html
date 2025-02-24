@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Serverless CRUD App</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    input, button { padding: 0.5rem; margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Serverless CRUD App</h1>
+  <div id="crud">
+    <h2>Test API Endpoints</h2>
+    <button onclick="callApi('/create', 'post')">Test Create</button>
+    <button onclick="callApi('/read', 'get')">Test Read</button>
+    <button onclick="callApi('/update', 'put')">Test Update</button>
+    <button onclick="callApi('/delete', 'delete')">Test Delete</button>
+    <button onclick="callApi('/list', 'get')">Test List</button>
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    // Replace with your API Gateway endpoint URL (obtained from deployment outputs)
+    const API_URL = 'https://YOUR_API_ID.execute-api.YOUR_REGION.amazonaws.com/prod';
+
+    async function callApi(path, method) {
+      let payload = {};
+      if (path === '/create') {
+        payload = { id: "123", name: "John Doe" };
+      } else if (path === '/read') {
+        payload = { Key: { id: "123" } };
+      } else if (path === '/update') {
+        payload = {
+          Key: { id: "123" },
+          UpdateExpression: "SET #nm = :name",
+          ExpressionAttributeValues: { ":name": "Jane Doe" },
+          ExpressionAttributeNames: { "#nm": "name" }
+        };
+      } else if (path === '/delete') {
+        payload = { Key: { id: "123" } };
+      }
+
+      try {
+        const response = await fetch(API_URL + path, {
+          method: method,
+          headers: {
+            "Content-Type": "application/json"
+            // In production, include the Authorization header with a valid Cognito JWT token.
+          },
+          body: (method === 'get' || method === 'delete') ? null : JSON.stringify({ payload })
+        });
+        const data = await response.json();
+        document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById("output").innerText = "Error: " + error;
+      }
+    }
+  </script>
+</body>
+</html>

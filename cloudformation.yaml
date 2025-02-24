@@ -1,0 +1,210 @@
+# SAM/CloudFormation template
+# Replace this placeholder with your SAM/CloudFormation code.
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Serverless CRUD application with separate Lambda functions for each operation,
+  an S3 bucket for hosting a static website, and a DynamoDB backend with API Gateway.
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: python3.8
+    Tracing: Active
+    Architectures:
+        - x86_64
+    Environment:
+      Variables:
+        DYNAMODB_TABLE: !Ref Table
+        REGION_NAME: !Ref Region
+  Api:
+    TracingEnabled: True #added xray tracing!
+  
+Parameters:
+  TableName:
+    Type: String
+    Default: "CRUDTable"
+    Description: "Name of the DynamoDB table."
+  S3FrontendBucketName:
+    Type: String
+    Description: "Name of the S3 bucket for hosting the static website (must be globally unique)."
+    Default: "crud-frontend-bucket-2025"
+  StageName:
+    Type: String
+    Default: "prod"
+    Description: "API Gateway stage name (e.g., dev, staging, prod)."
+
+Resources:
+  ### DynamoDB Table
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  ### S3 Bucket for Frontend Hosting
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3FrontendBucketName
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      AccessControl: PublicRead
+    DeletionPolicy: Retain  # Prevent accidental bucket deletion
+
+  ### (Optional) Bucket Policy to allow public read (if needed)
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+
+  ### API Gateway
+  CrudApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: "MyCrudApi"
+      StageName: !Ref StageName
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  ### Create Function
+  CreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "CreateFunction"
+      CodeUri: backend/src/create/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoDBTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTable
+      Events:
+        CreateApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /create
+            Method: post
+
+  ### Read Function
+  ReadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "ReadFunction"
+      CodeUri: backend/src/read/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoDBTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DynamoDBTable
+      Events:
+        ReadApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CrudApi
+            Path: /read
+            Method: get
+
+  ### Update Function
+  UpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "UpdateFunction"
+      CodeUri: backend/src/update/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoDBTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTable
+      Events:
+        UpdateApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CrudApi
+            Path: /update
+            Method: put
+
+  ### Delete Function
+  DeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "DeleteFunction"
+      CodeUri: backend/src/delete/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoDBTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTable
+      Events:
+        DeleteApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /delete
+            Method: delete
+
+  ### List Function
+  ListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "ListFunction"
+      CodeUri: backend/src/list/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoDBTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DynamoDBTable
+      Events:
+        ListApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /list
+            Method: get
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  DynamoDBTableName:
+    Description: "Name of the DynamoDB table"
+    Value: !Ref DynamoDBTable
+  FrontendBucketName:
+    Description: "S3 Bucket name hosting the frontend"
+    Value: !Ref FrontendBucket
+  FrontendBucketWebsiteURL:
+    Description: "S3 Website endpoint"
+    Value: !GetAtt FrontendBucket.WebsiteURL
