@@ -1,17 +1,49 @@
 import boto3
 import os
+import json
 
 def lambda_handler(event, context):
     table_name = os.environ.get("TABLE_NAME")
     dynamo = boto3.resource("dynamodb").Table(table_name)
     
-    # Expect payload to include a Key dict, e.g., {"id": "123"}
-    key = event.get("payload", {}).get("Key")
-    if not key:
-        return {"status": "error", "message": "Missing Key in payload"}
+    # 🛑 Parse the request body (expected as JSON string)
+    try:
+        body = json.loads(event.get("body", "{}"))
+    except Exception as e:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({
+                "status": "error", 
+                "message": "Invalid request format. Expected JSON in 'body'."
+            })
+        }
     
+    # 🔍 Validate that the payload contains a "Key" field
+    key = body.get("Key")
+    if not key:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({
+                "status": "error", 
+                "message": "Missing Key in payload. Expected payload: {\"Key\": {\"id\": \"123\"}}"
+            })
+        }
+    
+    # 🗑️ Delete the item from DynamoDB
     try:
         dynamo.delete_item(Key=key)
-        return {"status": "success", "message": "Item deleted"}
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "status": "success", 
+                "message": "Item deleted"
+            })
+        }
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return {
+            "statusCode": 500,
+            "body": json.dumps({
+                "status": "error", 
+                "message": str(e)
+            })
+        }
