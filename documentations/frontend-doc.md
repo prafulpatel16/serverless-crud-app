@@ -106,6 +106,17 @@ Added APIGateway into Trust relationship
 - Another error
 ![alt text](api-images/api20.png)
 
+- Error Resolved by explicitly added a permission to API Gateway to invoke lambda function
+
+Ref: https://repost.aws/knowledge-center/api-gateway-rest-api-lambda-integrations
+
+![alt text](api-images/s3-5.png)
+
+![alt text](api-images/api21.png)
+
+
+
+
 
 
 
