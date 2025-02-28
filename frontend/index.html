@@ -376,21 +376,26 @@ createForm.addEventListener('submit', async (e) => {
 
     // ----- Delete Operation -----
     const deleteForm = document.getElementById('deleteForm');
-    deleteForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = deleteForm.elements['id'].value;
-      try {
-        const response = await fetch(API_URL + '/delete', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ payload: { Key: { id } } })
-        });
-        const data = await response.json();
-        document.getElementById("output").innerText = JSON.stringify(data, null, 2);
-      } catch (error) {
-        document.getElementById("output").innerText = "Error: " + error;
-      }
-    });
+  deleteForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = deleteForm.elements['id'].value.trim();
+    
+    // Build payload with "Key" at the top level
+    const payload = { Key: { id } };
+    console.log("Payload for Delete:", payload);
+    
+    try {
+      const response = await fetch(API_URL + '/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+    } catch (error) {
+      document.getElementById("output").innerText = "Error: " + error;
+    }
+  });
 
     // ----- List Operation -----
     document.getElementById('listButton').addEventListener('click', async () => {

@@ -135,6 +135,20 @@ After fixing lambda code the error resolved
 ![alt text](api-images/api24.png)
 
 
+## DELET Function
+
+-Error
+![alt text](api-images/s3-9.png)
+
+- Solution: Frontend code updated for delete operation
+![alt text](api-images/s3-10.png)
+
+![alt text](api-images/api25.png)
+
+
+
+
+
 
 
 
