@@ -3,92 +3,117 @@ import os
 import json
 from decimal import Decimal
 
-# Custom JSON encoder for handling Decimal types
+# Custom JSON encoder for Decimal types
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Decimal):
             return float(obj)
         return super(DecimalEncoder, self).default(obj)
 
+# Helper function to recursively convert Decimal objects to float
+def convert_decimals(obj):
+    if isinstance(obj, list):
+        return [convert_decimals(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {k: convert_decimals(v) for k, v in obj.items()}
+    elif isinstance(obj, Decimal):
+        return float(obj)
+    else:
+        return obj
+
+def build_response(status_code, body):
+    body_converted = convert_decimals(body)
+    response = {
+        "statusCode": status_code,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",  # Change "*" to your specific domain if needed
+            "Access-Control-Allow-Credentials": "true"
+        },
+        "body": json.dumps(body_converted, cls=DecimalEncoder)
+    }
+    # Log the final response to CloudWatch
+    print("✅ Final Response:")
+    print(json.dumps(response, indent=2, cls=DecimalEncoder))
+    return response
+
 def lambda_handler(event, context):
+    print("🔍 FULL EVENT PAYLOAD:")
+    print(json.dumps(event, indent=2, cls=DecimalEncoder))
+    
     table_name = os.environ.get("TABLE_NAME")
+    print(f"🔧 TABLE_NAME: {table_name}")
+    if not table_name:
+        error_msg = "TABLE_NAME environment variable is not set."
+        print("❌ ERROR:", error_msg)
+        return build_response(500, {"status": "error", "message": error_msg})
+    
     dynamo = boto3.resource("dynamodb").Table(table_name)
-
-    # 🛑 API Gateway sends the body as a STRING, so we need to parse it
+    
+    http_method = event.get("httpMethod", "").upper()
+    print("🔧 HTTP Method:", http_method)
+    if http_method != "PUT":
+        error_msg = "Unsupported HTTP method. Use PUT."
+        print("❌ ERROR:", error_msg)
+        return build_response(400, {"status": "error", "message": error_msg})
+    
     try:
-        body = json.loads(event["body"])
-    except (KeyError, TypeError, json.JSONDecodeError):
-        return {
-            "statusCode": 400,
-            "body": json.dumps(
-                {"status": "error", "message": "Invalid request format. Expected JSON in 'body'."}
-            )
-        }
-
-    # 🔍 Ensure the "id" field is present (needed to identify which item to update)
-    if "id" not in body:
-        return {
-            "statusCode": 400,
-            "body": json.dumps(
-                {"status": "error", "message": "Missing required field: id"}
-            )
-        }
-
-    # Prepare partial update expressions for any fields present (e.g., name, age)
-    update_expressions = []
-    expression_values = {}
-    expression_names = {}
-
-    # If "name" is provided, include it in the update
-    if "name" in body:
-        update_expressions.append("#n = :n")
-        expression_names["#n"] = "name"
-        expression_values[":n"] = body["name"]
-
-    # If "age" is provided, include it in the update
-    if "age" in body:
-        update_expressions.append("#a = :a")
-        expression_names["#a"] = "age"
-        expression_values[":a"] = body["age"]
-
-    # If no fields to update were passed in, return an error
-    if not update_expressions:
-        return {
-            "statusCode": 400,
-            "body": json.dumps(
-                {"status": "error", "message": "No fields to update."}
-            )
-        }
-
-    # Construct the final UpdateExpression
-    final_expression = "SET " + ", ".join(update_expressions)
-
-    # Perform the DynamoDB update
+        payload = json.loads(event.get("body", "{}"))
+        print("📦 Parsed Body:")
+        print(json.dumps(payload, indent=2, cls=DecimalEncoder))
+    except Exception as e:
+        error_msg = f"Failed to parse JSON from body: {str(e)}"
+        print("❌ ERROR:", error_msg)
+        return build_response(400, {"status": "error", "message": error_msg})
+    
+    if "id" not in payload or not payload["id"]:
+        error_msg = "Missing required field: id"
+        print("❌ ERROR:", error_msg)
+        return build_response(400, {"status": "error", "message": error_msg})
+    
+    # Check if the payload already contains a pre-built update expression
+    if "UpdateExpression" in payload:
+        final_expression = payload["UpdateExpression"]
+        expression_names = payload.get("ExpressionAttributeNames", {})
+        expression_values = payload.get("ExpressionAttributeValues", {})
+        print("📝 Using pre-built update expression:")
+        print("UpdateExpression:", final_expression)
+        print("ExpressionAttributeNames:", expression_names)
+        print("ExpressionAttributeValues:", json.dumps(expression_values, cls=DecimalEncoder))
+    else:
+        # Build update expressions from raw fields (name and/or age)
+        update_expressions = []
+        expression_names = {}
+        expression_values = {}
+        if "name" in payload and payload["name"].strip() != "":
+            update_expressions.append("#nm = :nm")
+            expression_names["#nm"] = "name"
+            expression_values[":nm"] = payload["name"].strip()
+        if "age" in payload and str(payload["age"]).strip() != "":
+            update_expressions.append("#ag = :ag")
+            expression_names["#ag"] = "age"
+            expression_values[":ag"] = int(payload["age"])
+        if not update_expressions:
+            error_msg = "No fields to update. Provide at least 'name' or 'age'."
+            print("❌ ERROR:", error_msg)
+            return build_response(400, {"status": "error", "message": error_msg})
+        final_expression = "SET " + ", ".join(update_expressions)
+        print("📝 Built Update Expression:", final_expression)
+        print("📝 Expression Attribute Names:", expression_names)
+        print("📝 Expression Attribute Values:", json.dumps(expression_values, cls=DecimalEncoder))
+    
     try:
         result = dynamo.update_item(
-            Key={"id": body["id"]},
+            Key={"id": payload["id"]},
             UpdateExpression=final_expression,
             ExpressionAttributeNames=expression_names,
             ExpressionAttributeValues=expression_values,
-            ReturnValues="ALL_NEW"  # Return the updated item attributes
+            ReturnValues="ALL_NEW"
         )
-
+        print("🔍 DynamoDB Update Result:")
+        print(json.dumps(result, indent=2, cls=DecimalEncoder))
         updated_item = result.get("Attributes", {})
-
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "status": "success",
-                "message": "Item updated",
-                "updated_item": updated_item
-            }, cls=DecimalEncoder)
-        }
-
+        return build_response(200, {"status": "success", "message": "Item updated", "updated_item": updated_item})
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps(
-                {"status": "error", "message": str(e)},
-                cls=DecimalEncoder
-            )
-        }
+        error_msg = f"Error processing request: {str(e)}"
+        print("❌ ERROR:", error_msg)
+        return build_response(500, {"status": "error", "message": error_msg})

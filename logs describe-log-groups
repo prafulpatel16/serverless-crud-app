@@ -1,0 +1,96 @@
+{
+    "logGroups": [
+        {
+            "logGroupName": "/aws/apigateway/welcome",
+            "creationTime": 1740518188017,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/apigateway/welcome:*",
+            "storedBytes": 110,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/apigateway/welcome"
+        },
+        {
+            "logGroupName": "/aws/application-discovery-service/firehose",
+            "creationTime": 1738272449363,
+            "retentionInDays": 30,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/application-discovery-service/firehose:*",
+            "storedBytes": 0,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/application-discovery-service/firehose"
+        },
+        {
+            "logGroupName": "/aws/lambda/CreateFunction",
+            "creationTime": 1740357789555,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/CreateFunction:*",
+            "storedBytes": 24873,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/CreateFunction"
+        },
+        {
+            "logGroupName": "/aws/lambda/DeleteFunction",
+            "creationTime": 1740444986311,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/DeleteFunction:*",
+            "storedBytes": 1660,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/DeleteFunction"
+        },
+        {
+            "logGroupName": "/aws/lambda/LambdaFunctionOverHttps",
+            "creationTime": 1740246767261,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/LambdaFunctionOverHttps:*",
+            "storedBytes": 288,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/LambdaFunctionOverHttps"
+        },
+        {
+            "logGroupName": "/aws/lambda/ListFunction",
+            "creationTime": 1740455549659,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/ListFunction:*",
+            "storedBytes": 1217,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/ListFunction"
+        },
+        {
+            "logGroupName": "/aws/lambda/ReadFunction",
+            "creationTime": 1740364705350,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/ReadFunction:*",
+            "storedBytes": 144737,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/ReadFunction"
+        },
+        {
+            "logGroupName": "/aws/lambda/UpdateFunction",
+            "creationTime": 1740436338453,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/UpdateFunction:*",
+            "storedBytes": 258434,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:/aws/lambda/UpdateFunction"
+        },
+        {
+            "logGroupName": "API-Gateway-Execution-Logs_awdo2xz264/Stage",
+            "creationTime": 1740518312762,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:API-Gateway-Execution-Logs_awdo2xz264/Stage:*",
+            "storedBytes": 76964,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:API-Gateway-Execution-Logs_awdo2xz264/Stage"
+        },
+        {
+            "logGroupName": "dms-tasks-replication-instance",
+            "creationTime": 1738288196107,
+            "retentionInDays": 5,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-west-2:202533534284:log-group:dms-tasks-replication-instance:*",
+            "storedBytes": 0,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-west-2:202533534284:log-group:dms-tasks-replication-instance"
+        }
+    ]
+}

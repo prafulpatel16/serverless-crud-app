@@ -313,41 +313,66 @@ createForm.addEventListener('submit', async (e) => {
 });
 
     // ----- Update Operation -----
+    // <!-- ----- Update Operation ----- -->
+
+    // Update Operation
     const updateForm = document.getElementById('updateForm');
-    updateForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = updateForm.elements['id'].value;
-      const name = updateForm.elements['name'].value;
-      const age = updateForm.elements['age'].value;
-      const payload = { Key: { id } };
-      if (name) {
-        payload.UpdateExpression = "SET #nm = :n";
-        payload.ExpressionAttributeNames = { "#nm": "name" };
-        payload.ExpressionAttributeValues = { ":n": name };
-      }
-      if (age) {
-        if (payload.UpdateExpression) {
-          payload.UpdateExpression += ", #a = :a";
-          payload.ExpressionAttributeNames["#a"] = "age";
-          payload.ExpressionAttributeValues[":a"] = age;
-        } else {
-          payload.UpdateExpression = "SET #a = :a";
-          payload.ExpressionAttributeNames = { "#a": "age" };
-          payload.ExpressionAttributeValues = { ":a": age };
-        }
-      }
-      try {
-        const response = await fetch(API_URL + '/update', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ payload })
-        });
-        const data = await response.json();
-        document.getElementById("output").innerText = JSON.stringify(data, null, 2);
-      } catch (error) {
-        document.getElementById("output").innerText = "Error: " + error;
-      }
-    });
+  updateForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Get and trim the input values
+    const id = updateForm.elements['id'].value.trim();
+    const name = updateForm.elements['name'].value.trim();
+    const age = updateForm.elements['age'].value.trim();
+    
+    // Debug: log the values to the console
+    console.log("Update Form Values:", { id, name, age });
+    
+    // Build the payload with id at top level
+    const payload = { id };
+    
+    // Build update expression if fields are provided
+    let update_expressions = [];
+    let expressionNames = {};
+    let expressionValues = {};
+    
+    if (name !== "") {
+      update_expressions.push("#nm = :n");
+      expressionNames["#nm"] = "name";
+      expressionValues[":n"] = name;
+    }
+    if (age !== "") {
+      update_expressions.push("#ag = :a");
+      expressionNames["#ag"] = "age";
+      expressionValues[":a"] = Number(age);
+    }
+    
+    if (update_expressions.length === 0) {
+      alert("No fields to update. Please provide at least 'name' or 'age'.");
+      return;
+    }
+    
+    // Append update details to payload
+    payload.UpdateExpression = "SET " + update_expressions.join(", ");
+    payload.ExpressionAttributeNames = expressionNames;
+    payload.ExpressionAttributeValues = expressionValues;
+    
+    // Debug: log the payload to be sent
+    console.log("Payload for Update:", payload);
+    
+    try {
+      const response = await fetch(API_URL + '/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+    } catch (error) {
+      document.getElementById("output").innerText = "Error: " + error;
+    }
+  });
+
 
     // ----- Delete Operation -----
     const deleteForm = document.getElementById('deleteForm');

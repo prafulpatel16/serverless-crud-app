@@ -114,9 +114,47 @@ Ref: https://repost.aws/knowledge-center/api-gateway-rest-api-lambda-integration
 
 ![alt text](api-images/api21.png)
 
+### UPDATE Function
+
+- Error
+![alt text](api-images/s3-6.png)
+
+- Investigate CloudWatch Logs
+![alt text](api-images/s3-7.png)
+
+## Error
+
+![alt text](api-images/api22.png)
+
+![alt text](api-images/api23.png)
+
+After fixing lambda code the error resolved
+
+![alt text](api-images/s3-8.png)
+
+![alt text](api-images/api24.png)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Navigate to your frontend folder (where index.html resides)
+aws s3 sync . s3://crud-frontend-bucket-2025/ --delete
 
 
 
