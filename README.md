@@ -13,31 +13,37 @@ Welcome to the **Serverless CRUD Application** repository! This project demonstr
 
 ## Table of Contents 📖
 
-1. [Overview & Motivation](#overview--motivation)  
+1. [About the Project](#about-the-project)  
 2. [Architecture](#architecture)  
-3. [Repository Structure](#repository-structure)  
-4. [Prerequisites & Setup](#prerequisites--setup)
-4. [Documentations](#0.0.pre-requisite.md)  
-5. [Detailed Workflow](#detailed-workflow)  
-6. [CRUD Operations](#crud-operations)  
-7. [Deployment](#deployment)
+3. [Project Structure](#project-structure)  
+4. [Prerequisites & Setup](#prerequisites--setup)  
+5. [Documentations](#documentations)  
+6. [Detailed Workflow](#detailed-workflow)  
+7. [CRUD Operations](#crud-operations)  
+8. [Deployment](#deployment)  
 9. [Local Testing](#local-testing)  
 10. [Contributing](#contributing)  
-11. [License](#license)
+11. [License](#license)  
+12. [Author](#author)
 
+---
 
-## Overview & Motivation 🎯
+## About the Project 📝
 
-**Why build a Serverless CRUD app?**  
+The **Serverless CRUD App** provides a fully serverless architecture for managing CRUD operations. It leverages AWS SAM and CloudFormation for infrastructure as code, and AWS Lambda + API Gateway for backend logic. A simple HTML/JS frontend (hosted on S3) communicates with these services to perform operations on a DynamoDB table.
+
+**Why build a Serverless CRUD app?**
 - **Scalability:** Serverless architectures automatically scale based on demand.  
 - **Pay-as-you-go:** Pay only for the compute time and resources used.  
 - **Simplicity:** Focus on business logic rather than server maintenance.  
 - **Reliability:** AWS services provide high availability out of the box.
 
-**When is this useful?**  
+**When is this useful?**
 - **Rapid Prototyping:** Quickly build a backend without provisioning servers.  
-- **Low to Medium Traffic Apps:** Serverless is perfect for spiky workloads and moderate traffic.  
-- **Cost Optimization:** For apps with intermittent usage, serverless can be highly cost-effective.
+- **Low to Medium Traffic Apps:** Perfect for moderate workloads and spiky usage.  
+- **Cost Optimization:** Ideal for apps with intermittent usage.
+
+---
 
 ## Architecture 🏗️
 
@@ -140,6 +146,29 @@ aws-serverless-CRUD-application/
    If you want to run or test code locally, ensure the relevant runtime is installed.
 
 ---
+---
+
+## Documentations 📜
+
+This repository may contain additional documentation files in a `documentations` or `docs` folder:
+
+- **0.0.pre-requisite.md**  
+  Explains pre-requisites for the project.
+- **0.1.IAM-roles.md**  
+  Details about IAM roles and minimal privileges needed.
+- **1.API-document.md**  
+  Full API specification (endpoints, payloads, response formats).
+- **2.Api-testing.md**  
+  Guidelines on using Postman or cURL to test the API.
+- **3.app-functionality.md**  
+  A deeper look into the frontend and how it interacts with the backend.
+- **4.frontend-doc.md**  
+  Step-by-step instructions for hosting the frontend on S3.
+- **5.sam-infra-documentation.md**  
+  Explains the SAM/CloudFormation infrastructure in detail.
+
+---
+
 
 ## Detailed Workflow 🔄
 
