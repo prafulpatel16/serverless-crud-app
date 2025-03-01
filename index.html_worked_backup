@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dynamic Serverless CRUD App</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 960px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    header, footer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      color: #0073bb;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    nav button {
+      padding: 10px 20px;
+      background: #0073bb;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    nav button:hover {
+      background: #005fa3;
+    }
+    section {
+      display: none;
+    }
+    section.active {
+      display: block;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    .field-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .field-group input {
+      padding: 8px;
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .field-group button.remove {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button.action-btn {
+      background: #0073bb;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 10px auto;
+    }
+    button.action-btn:hover {
+      background: #005fa3;
+    }
+    pre#output {
+      background: #333;
+      color: #0f0;
+      padding: 10px;
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: monospace;
+    }
+    /* Social Links */
+    .social-links {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .social-links a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #0073bb;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+    .social-links a:hover {
+      color: #005fa3;
+    }
+    footer {
+      font-size: 0.9rem;
+      color: #777;
+      margin-top: 20px;
+    }
+    footer a {
+      color: #0073bb;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <!-- Font Awesome CDN for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" 
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Dynamic Serverless CRUD App</h1>
+    </header>
+
+    <!-- Navigation Buttons -->
+    <nav>
+      <button onclick="showSection('create')">Create</button>
+      <button onclick="showSection('read')">Read</button>
+      <button onclick="showSection('update')">Update</button>
+      <button onclick="showSection('delete')">Delete</button>
+      <button onclick="showSection('list')">List</button>
+    </nav>
+
+    <!-- Create Section -->
+    <section id="createSection" class="active">
+      <h2>Create Item</h2>
+      <form id="createForm">
+        <div id="createFields">
+          <div class="field-group">
+            <input type="text" name="id" placeholder="ID" required>
+            <input type="text" name="name" placeholder="Name" required>
+            <input type="number" name="age" placeholder="Age" required>
+            <button type="button" class="remove" onclick="removeField(this)">Remove</button>
+          </div>
+        </div>
+        <button type="button" id="addCreateField" class="action-btn">Add More Fields</button>
+        <button type="submit" class="action-btn">Submit Create</button>
+      </form>
+    </section>
+
+    <!-- Read Section -->
+    <section id="readSection">
+      <h2>Read Item</h2>
+      <form id="readForm">
+        <div class="field-group">
+          <input type="text" name="id" placeholder="Enter ID" required>
+        </div>
+        <button type="submit" class="action-btn">Fetch Item</button>
+      </form>
+    </section>
+
+    <!-- Update Section -->
+    <section id="updateSection">
+      <h2>Update Item</h2>
+      <form id="updateForm">
+        <div class="field-group">
+          <input type="text" name="id" placeholder="Enter ID" required>
+          <input type="text" name="name" placeholder="New Name">
+          <input type="number" name="age" placeholder="New Age">
+        </div>
+        <button type="submit" class="action-btn">Submit Update</button>
+      </form>
+    </section>
+
+    <!-- Delete Section -->
+    <section id="deleteSection">
+      <h2>Delete Item</h2>
+      <form id="deleteForm">
+        <div class="field-group">
+          <input type="text" name="id" placeholder="Enter ID to delete" required>
+        </div>
+        <button type="submit" class="action-btn">Delete Item</button>
+      </form>
+    </section>
+
+    <!-- List Section -->
+    <section id="listSection">
+      <h2>List Items</h2>
+      <button id="listButton" class="action-btn">List All Items</button>
+    </section>
+
+    <pre id="output"></pre>
+
+    <!-- Social Links -->
+    <section class="social-links">
+      <h2>Connect with Me</h2>
+      <a href="https://www.praful.cloud" target="_blank" rel="noopener noreferrer">
+        <i class="fa-solid fa-globe"></i> Website
+      </a>
+      <a href="https://linkedin.com/in/prafulpatel16" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-linkedin"></i> LinkedIn
+      </a>
+      <a href="https://github.com/prafulpatel16" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-github"></i> GitHub
+      </a>
+      <a href="https://www.youtube.com/@prafulpatel16" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-youtube"></i> YouTube
+      </a>
+      <a href="https://medium.com/@prafulpatel16" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-medium"></i> Medium
+      </a>
+      <a href="https://dev.to/prafulpatel16" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-dev"></i> Dev.to
+      </a>
+    </section>
+
+    <footer>
+      <p>
+        Developed & Implemented By: 
+        <a href="https://www.praful.cloud" target="_blank" rel="noopener noreferrer">
+          PRAFUL PATEL
+        </a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // API URL (replace with your actual API Gateway endpoint)
+    const API_URL = 'https://awdo2xz264.execute-api.us-west-2.amazonaws.com/Stage';
+
+    // Function to show a specific section and hide others
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll('section');
+      sections.forEach(sec => sec.classList.remove('active'));
+      document.getElementById(sectionId + 'Section').classList.add('active');
+      // Clear output when switching sections
+      document.getElementById("output").innerText = "";
+    }
+
+    // Remove a dynamic field group
+    function removeField(button) {
+      button.parentElement.remove();
+    }
+
+  // ----- Create Operation -----
+const createForm = document.getElementById('createForm');
+document.getElementById('addCreateField').addEventListener('click', () => {
+  const newGroup = document.createElement('div');
+  newGroup.className = 'field-group';
+  newGroup.innerHTML = `
+    <input type="text" name="id" placeholder="ID" required>
+    <input type="text" name="name" placeholder="Name" required>
+    <input type="number" name="age" placeholder="Age" required>
+    <button type="button" class="remove" onclick="removeField(this)">Remove</button>
+  `;
+  document.getElementById('createFields').appendChild(newGroup);
+});
+
+createForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const groups = document.querySelectorAll('#createFields .field-group');
+  let items = [];
+  groups.forEach(group => {
+    const id = group.querySelector("input[name='id']").value;
+    const name = group.querySelector("input[name='name']").value;
+    const age = group.querySelector("input[name='age']").value;
+    items.push({ id, name, age });
+  });
+  
+  try {
+    const response = await fetch(API_URL + '/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items })
+    });
+    const data = await response.json();
+    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+  } catch (error) {
+    document.getElementById("output").innerText = "Error: " + error;
+  }
+});
+    // ----- Read Operation -----
+    readForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = readForm.elements['id'].value;
+  const url = `${API_URL}/read?id=${encodeURIComponent(id)}`;
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await response.json();
+    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+  } catch (error) {
+    document.getElementById("output").innerText = "Error: " + error;
+  }
+});
+
+    // ----- Update Operation -----
+    // <!-- ----- Update Operation ----- -->
+
+    // Update Operation
+    const updateForm = document.getElementById('updateForm');
+  updateForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Get and trim the input values
+    const id = updateForm.elements['id'].value.trim();
+    const name = updateForm.elements['name'].value.trim();
+    const age = updateForm.elements['age'].value.trim();
+    
+    // Debug: log the values to the console
+    console.log("Update Form Values:", { id, name, age });
+    
+    // Build the payload with id at top level
+    const payload = { id };
+    
+    // Build update expression if fields are provided
+    let update_expressions = [];
+    let expressionNames = {};
+    let expressionValues = {};
+    
+    if (name !== "") {
+      update_expressions.push("#nm = :n");
+      expressionNames["#nm"] = "name";
+      expressionValues[":n"] = name;
+    }
+    if (age !== "") {
+      update_expressions.push("#ag = :a");
+      expressionNames["#ag"] = "age";
+      expressionValues[":a"] = Number(age);
+    }
+    
+    if (update_expressions.length === 0) {
+      alert("No fields to update. Please provide at least 'name' or 'age'.");
+      return;
+    }
+    
+    // Append update details to payload
+    payload.UpdateExpression = "SET " + update_expressions.join(", ");
+    payload.ExpressionAttributeNames = expressionNames;
+    payload.ExpressionAttributeValues = expressionValues;
+    
+    // Debug: log the payload to be sent
+    console.log("Payload for Update:", payload);
+    
+    try {
+      const response = await fetch(API_URL + '/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+    } catch (error) {
+      document.getElementById("output").innerText = "Error: " + error;
+    }
+  });
+
+
+    // ----- Delete Operation -----
+    const deleteForm = document.getElementById('deleteForm');
+  deleteForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = deleteForm.elements['id'].value.trim();
+    
+    // Build payload with "Key" at the top level
+    const payload = { Key: { id } };
+    console.log("Payload for Delete:", payload);
+    
+    try {
+      const response = await fetch(API_URL + '/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+    } catch (error) {
+      document.getElementById("output").innerText = "Error: " + error;
+    }
+  });
+
+    // ----- List Operation -----
+    document.getElementById('listButton').addEventListener('click', async () => {
+      try {
+        const response = await fetch(API_URL + '/list', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById("output").innerText = "Error: " + error;
+      }
+    });
+  </script>
+</body>
+</html>
