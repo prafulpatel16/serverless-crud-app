@@ -7,6 +7,11 @@ The **Serverless CRUD App** is a backend and frontend application that provides 
 ## Architectural Diagram
 ![alt text](diagrams/serverless-crud-app-diagram.png)
 
+
+## Application Frontend UI
+![alt text](diagrams/CRUD-dashboard.png)
+
+
 # 🏗️ Serverless CRUD Application
 
 Welcome to the **Serverless CRUD Application** repository! This project demonstrates how to build and deploy a fully serverless, scalable, and cost-effective CRUD (Create, Read, Update, Delete) system using **AWS** services such as **Lambda**, **API Gateway**, and **DynamoDB**. It also includes a simple **HTML/JavaScript** frontend hosted on **Amazon S3**.
