@@ -52,17 +52,7 @@ The **Serverless CRUD App** provides a fully serverless architecture for managin
 
 ## Architecture 🏗️
 
-```mermaid
-flowchart LR
-    A[Frontend (S3)] --> B[API Gateway]
-    B --> C[Lambda Functions]
-    C --> D[DynamoDB]
-
-    subgraph AWS Cloud
-      B
-      C
-      D
-    end
+``` 
 ```
 ## 🏗️ Architectural Diagram
 ![alt text](diagrams/serverless-crud-app-diagram.png)
@@ -78,6 +68,102 @@ flowchart LR
 - **Amazon API Gateway:** Routes incoming HTTP requests to the appropriate Lambda function.
 - **Amazon S3:** Hosts the static frontend.
 
+
+# Architectural Perspective & Event-Driven Classification
+
+This document provides an architectural overview of the **Serverless CRUD App** and discusses its classification in terms of synchronous versus asynchronous Event-Driven Architecture (EDA).
+
+---
+
+## Overview of the Architecture 🏗️
+
+The **Serverless CRUD App** leverages a modern AWS serverless stack:
+
+- **Frontend (S3 + CloudFront):**  
+  A static HTML/JavaScript application hosted on Amazon S3 (optionally served via CloudFront for improved global performance).
+
+- **API Gateway:**  
+  Acts as the HTTP interface that exposes RESTful endpoints (POST, GET, PUT, DELETE, etc.) to the frontend.
+
+- **AWS Lambda Functions:**  
+  Implements each CRUD operation. These functions are triggered synchronously by API Gateway requests.
+
+- **Amazon DynamoDB:**  
+  A NoSQL database where the application stores its data, keyed by unique IDs.
+
+This design enables rapid scaling, cost efficiency, and a low operational footprint.
+
+---
+
+## Synchronous vs. Asynchronous Event-Driven Architecture ⚙️
+
+### Synchronous Architecture
+
+- **Definition:**  
+  In a synchronous system, components interact in real-time. The caller (e.g., API Gateway) waits for the invoked service (e.g., a Lambda function) to complete and return a response before proceeding.
+  
+- **Characteristics:**
+  - **Real-time Response:** The client receives an immediate response.
+  - **Direct Invocation:** The request-response flow is tightly coupled.
+  - **Blocking Calls:** The calling service is blocked until the response arrives.
+
+### Asynchronous Architecture
+
+- **Definition:**  
+  In an asynchronous system, events are processed independently. The caller sends a message (or event) and does not wait for an immediate response. Instead, the processing happens in the background, often via queues, event buses, or stream processing.
+  
+- **Characteristics:**
+  - **Decoupled Components:** Producers and consumers operate independently.
+  - **Eventual Consistency:** The response or effect of the event may be delayed.
+  - **Scalability:** Often ideal for high-throughput, non-blocking operations.
+
+---
+
+## Classification of the Serverless CRUD App 🔎
+
+**The Serverless CRUD App is classified as a Synchronous System within an Event-Driven Architecture.**
+
+### Why Synchronous?
+
+- **Direct API Invocation:**  
+  API Gateway invokes Lambda functions synchronously. Each CRUD operation (Create, Read, Update, Delete) waits for the Lambda function to execute and return a response before the API Gateway sends that response back to the client.
+
+- **Immediate Response Required:**  
+  Operations such as reading a record or updating a record require an immediate response so the frontend can display the results directly to the user.
+
+- **No Message Queues:**  
+  The architecture does not use queues (e.g., SQS) or event buses (e.g., EventBridge) to decouple the process. The interaction is a direct request-response cycle.
+
+### Event-Driven Elements
+
+Even though the system is synchronous, it still follows an **event-driven** paradigm in that:
+- **Events Trigger Functions:**  
+  Each API call (HTTP request) is treated as an event that triggers a corresponding Lambda function.
+- **Loose Coupling:**  
+  While the API Gateway and Lambda are directly connected, the Lambda functions themselves are independent and can be updated or scaled separately.
+- **Resilience:**  
+  Using Lambda and DynamoDB provides built-in scaling and fault tolerance typical of event-driven architectures.
+
+---
+
+## Architectural Benefits 🌟
+
+- **Scalability & Cost Efficiency:**  
+  AWS Lambda and DynamoDB scale automatically and you pay only for what you use.
+- **Rapid Development:**  
+  The serverless model accelerates development by removing server management tasks.
+- **High Availability:**  
+  AWS services ensure high availability and reliability.
+
+---
+
+## Conclusion 🎉
+
+The **Serverless CRUD App** is a **synchronous event-driven application** where API Gateway synchronously invokes Lambda functions to process CRUD operations. While it leverages event-driven principles (triggering functions based on HTTP events), the request-response cycle is handled synchronously to meet the immediate needs of user interaction.
+
+This architecture is ideal for applications requiring real-time feedback and a tightly coupled, yet scalable, interaction model.
+
+---
 
 ## 📁 Project Structure
 
@@ -358,7 +444,10 @@ For Tech, visit [Praful's Blog](https://www.praful.cloud).
 
 ---
 
-
+**Happy Building!** If you have any questions or need further details, please refer to the AWS documentation:
+- [AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/)
+- [Amazon API Gateway Documentation](https://docs.aws.amazon.com/apigateway/)
+- [Amazon DynamoDB Documentation](https://docs.aws.amazon.com/dynamodb/)
 
 
 
