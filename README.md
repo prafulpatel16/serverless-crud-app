@@ -59,7 +59,7 @@ The **Serverless CRUD App** provides a fully serverless architecture for managin
 ``` 
 ```
 ## 🏗️ Architectural Diagram
-![alt text](diagrams/serverless-crud-app-diagram.png)
+![alt text](diagrams/AWS-serverless-CRUD-App-Diagram.jpg)
 
 1. **Frontend (S3):** Hosts the static HTML, CSS, and JS.
 2. **API Gateway:** Manages RESTful endpoints for CRUD operations.
