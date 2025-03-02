@@ -5,6 +5,10 @@
 The **Serverless CRUD App** is a backend and frontend application that provides a fully serverless architecture for managing CRUD (Create, Read, Update, Delete) operations. It is built using AWS Serverless Application Model (AWS SAM), CloudFormation, and a structured backend API that integrates seamlessly with frontend services.
 
 ## Architectural Diagram
+![alt text](<diagrams/AWS Blogs- Thumbnail 1200 X 644.gif>)
+
+## Architectural Flow Diagram
+
 ![alt text](diagrams/serverless-crud-app-diagram.png)
 
 
