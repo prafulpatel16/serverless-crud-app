@@ -1,8 +1,11 @@
 import json
-import os
 import pytest
+import os
+import sys
+import boto3
 from unittest.mock import patch, MagicMock
-from backend.src.delete import app as delete_app
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 @pytest.fixture
 def lambda_context():
